@@ -36,6 +36,15 @@ app.get('/household', async(req, res) =>{
   res.send(result)
 })
 
+//  POST Route: Add a new service
+    app.post('/household', async (req, res) => {
+      const newService = req.body;
+      console.log('Adding new service:', newService);
+      
+      const result = await userCollection.insertOne(newService);
+      res.send(result);
+    });
+
 
 
     // Send a ping to confirm a successful connection
@@ -49,5 +58,5 @@ app.get('/household', async(req, res) =>{
 run().catch(console.dir);
 
 app.listen(port, () => {
-    console.log(`this sever is starte on port no:${port}`)
+   console.log(`this sever is starte on port no:${port}`)
 })
