@@ -1,15 +1,18 @@
-const express = require('express')
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const cors =require('cors')
-const app = express()
+const express = require('express');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const cors = require('cors');
+
+const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors())
-app.use(express.json())
+// middleware
+app.use(cors());
+app.use(express.json());
 
+// MongoDB URI
 const uri = "mongodb+srv://household:pNkXSw2GTIAiUZkj@cluster0.4h16s8h.mongodb.net/?appName=Cluster0";
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+// Mongo Client
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -18,45 +21,63 @@ const client = new MongoClient(uri, {
   }
 });
 
-app.get('/', (req , res) =>{
-    res.send('this server is online')
-})
+// Root route
+app.get('/', (req, res) => {
+  res.send('Server is running 🚀');
+});
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-const householdDB = client.db('household')
-const userCollection = householdDB.collection('services')
+    const householdDB = client.db('household');
+    const userCollection = householdDB.collection('services');
 
-app.get('/household', async(req, res) =>{
-  const cursor = userCollection.find();
-  const result = await cursor.toArray()
-  res.send(result)
-})
+    // ✅ GET all services
+    app.get('/household', async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
 
-//  POST Route: Add a new service
+    // ✅ GET single service by ID (🔥 MOST IMPORTANT FIX)
+    app.get('/household/:id', async (req, res) => {
+      const id = req.params.id;
+
+      try {
+        const result = await userCollection.findOne({
+          _id: new ObjectId(id)
+        });
+
+        if (!result) {
+          return res.status(404).send({ message: "Service not found" });
+        }
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching service:", error);
+        res.status(500).send({ message: "Invalid ID" });
+      }
+    });
+
+    // ✅ POST: Add new service
     app.post('/household', async (req, res) => {
       const newService = req.body;
-      console.log('Adding new service:', newService);
-      
       const result = await userCollection.insertOne(newService);
       res.send(result);
     });
 
-
-
-    // Send a ping to confirm a successful connection
+    // optional: ping test
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+    console.log("✅ Connected to MongoDB");
+
+  } catch (error) {
+    console.error(error);
   }
 }
-run().catch(console.dir);
 
+run();
+
+// start server
 app.listen(port, () => {
-   console.log(`this sever is starte on port no:${port}`)
-})
+  console.log(`🚀 Server running on port ${port}`);
+});
