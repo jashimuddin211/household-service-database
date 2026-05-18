@@ -64,10 +64,32 @@ async function run() {
     // ===================================================
     app.get('/household', async (req, res) => {
 
-      const result = await userCollection.find().toArray();
+  const min = parseInt(req.query.min) || 0;
 
-      res.send(result);
+  const max = parseInt(req.query.max) || Infinity;
+
+  const query = {
+    price: {
+      $gte: min,
+      $lte: max
+    }
+  };
+
+  try {
+
+    const result = await userCollection.find(query).toArray();
+
+    res.send(result);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).send({
+      message: 'Failed to fetch services'
     });
+  }
+});
 
 
 
