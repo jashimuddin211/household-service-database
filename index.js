@@ -5,14 +5,23 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// middleware
+// ===================================================
+// ✅ Middleware
+// ===================================================
 app.use(cors());
 app.use(express.json());
 
-// MongoDB URI
-const uri = "mongodb+srv://household:pNkXSw2GTIAiUZkj@cluster0.4h16s8h.mongodb.net/?appName=Cluster0";
 
-// Mongo Client
+// ===================================================
+// ✅ MongoDB URI
+// ===================================================
+const uri =
+  "mongodb+srv://household:pNkXSw2GTIAiUZkj@cluster0.4h16s8h.mongodb.net/?appName=Cluster0";
+
+
+// ===================================================
+// ✅ Mongo Client
+// ===================================================
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -21,21 +30,32 @@ const client = new MongoClient(uri, {
   }
 });
 
-// Root route
+
+// ===================================================
+// ✅ Root Route
+// ===================================================
 app.get('/', (req, res) => {
   res.send('Server is running 🚀');
 });
 
+
+// ===================================================
+// ✅ Main Function
+// ===================================================
 async function run() {
 
   try {
 
+    // Connect MongoDB
     await client.connect();
 
+    // Database
     const householdDB = client.db('household');
 
-    // collection
+    // Collections
     const userCollection = householdDB.collection('services');
+
+    const bookingCollection = householdDB.collection('bookings');
 
 
 
@@ -85,6 +105,7 @@ async function run() {
         });
 
         if (!result) {
+
           return res.status(404).send({
             message: "Service not found"
           });
@@ -106,7 +127,7 @@ async function run() {
 
 
     // ===================================================
-    // ✅ POST: Add new service
+    // ✅ POST new service
     // ===================================================
     app.post('/household', async (req, res) => {
 
@@ -173,12 +194,89 @@ async function run() {
 
 
 
-    // optional ping
+    // ===================================================
+    // ✅ POST booking
+    // ===================================================
+    app.post('/bookings', async (req, res) => {
+
+      const booking = req.body;
+
+      try {
+
+        const result = await bookingCollection.insertOne(booking);
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error("Booking Error:", error);
+
+        res.status(500).send({
+          message: 'Failed to save booking'
+        });
+      }
+    });
+
+
+
+
+    // ===================================================
+    // ✅ GET all bookings
+    // ===================================================
+    app.get('/bookings', async (req, res) => {
+
+      const result = await bookingCollection.find().toArray();
+
+      res.send(result);
+    });
+
+    // ===================================================
+// ✅ DELETE booking
+// ===================================================
+app.delete('/bookings/:id', async (req, res) => {
+
+  const id = req.params.id;
+
+  const query = {
+    _id: new ObjectId(id)
+  };
+
+  const result = await bookingCollection.deleteOne(query);
+
+  res.send(result);
+});
+
+
+
+    // ===================================================
+    // ✅ GET bookings by user email
+    // ===================================================
+    app.get('/bookings/:email', async (req, res) => {
+
+      const email = req.params.email;
+
+      const query = {
+        userEmail: email
+      };
+
+      const result = await bookingCollection.find(query).toArray();
+
+      res.send(result);
+    });
+
+
+
+
+    // ===================================================
+    // ✅ MongoDB Ping
+    // ===================================================
     await client.db("admin").command({ ping: 1 });
 
     console.log("✅ Connected to MongoDB");
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(error);
   }
@@ -187,7 +285,9 @@ async function run() {
 run();
 
 
-// start server
+// ===================================================
+// ✅ Start Server
+// ===================================================
 app.listen(port, () => {
 
   console.log(`🚀 Server running on port ${port}`);
