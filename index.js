@@ -11,13 +11,11 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-
 // ===================================================
 // ✅ MongoDB URI
 // ===================================================
 const uri =
   "mongodb+srv://household:pNkXSw2GTIAiUZkj@cluster0.4h16s8h.mongodb.net/?appName=Cluster0";
-
 
 // ===================================================
 // ✅ Mongo Client
@@ -30,14 +28,12 @@ const client = new MongoClient(uri, {
   }
 });
 
-
 // ===================================================
 // ✅ Root Route
 // ===================================================
 app.get('/', (req, res) => {
   res.send('Server is running 🚀');
 });
-
 
 // ===================================================
 // ✅ Main Function
@@ -46,53 +42,94 @@ async function run() {
 
   try {
 
-    // Connect MongoDB
+    // ===================================================
+    // ✅ Connect MongoDB
+    // ===================================================
     await client.connect();
 
-    // Database
+    console.log("✅ Connected to MongoDB");
+
+    // ===================================================
+    // ✅ Database & Collections
+    // ===================================================
     const householdDB = client.db('household');
 
-    // Collections
     const userCollection = householdDB.collection('services');
 
     const bookingCollection = householdDB.collection('bookings');
-
-
 
     // ===================================================
     // ✅ GET all services
     // ===================================================
     app.get('/household', async (req, res) => {
 
-  const min = parseInt(req.query.min) || 0;
+      const min = parseInt(req.query.min) || 0;
 
-  const max = parseInt(req.query.max) || Infinity;
+      const max = parseInt(req.query.max) || Infinity;
 
-  const query = {
-    price: {
-      $gte: min,
-      $lte: max
-    }
-  };
+      const query = {
+        price: {
+          $gte: min,
+          $lte: max
+        }
+      };
 
-  try {
+      try {
 
-    const result = await userCollection.find(query).toArray();
+        const result = await userCollection.find(query).toArray();
 
-    res.send(result);
+        res.send(result);
 
-  } catch (error) {
+      } catch (error) {
 
-    console.error(error);
+        console.error(error);
 
-    res.status(500).send({
-      message: 'Failed to fetch services'
+        res.status(500).send({
+          message: 'Failed to fetch services'
+        });
+      }
     });
-  }
-});
 
+    // ===================================================
+    // ✅ GET Top 6 Rated Services
+    // ===================================================
+    app.get('/top-services', async (req, res) => {
 
+      try {
 
+        const services = await userCollection.find().toArray();
+
+        const sortedServices = services.sort((a, b) => {
+
+          const aReviews = a.reviews || [];
+          const bReviews = b.reviews || [];
+
+          const aAvg =
+            aReviews.length > 0
+              ? aReviews.reduce((sum, r) => sum + r.rating, 0) /
+                aReviews.length
+              : 0;
+
+          const bAvg =
+            bReviews.length > 0
+              ? bReviews.reduce((sum, r) => sum + r.rating, 0) /
+                bReviews.length
+              : 0;
+
+          return bAvg - aAvg;
+        });
+
+        res.send(sortedServices.slice(0, 6));
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to fetch top services'
+        });
+      }
+    });
 
     // ===================================================
     // ✅ GET logged-in provider services
@@ -105,13 +142,21 @@ async function run() {
         providerEmail: email
       };
 
-      const result = await userCollection.find(query).toArray();
+      try {
 
-      res.send(result);
+        const result = await userCollection.find(query).toArray();
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to fetch provider services'
+        });
+      }
     });
-
-
-
 
     // ===================================================
     // ✅ GET single service by ID
@@ -145,9 +190,6 @@ async function run() {
       }
     });
 
-
-
-
     // ===================================================
     // ✅ POST new service
     // ===================================================
@@ -155,13 +197,21 @@ async function run() {
 
       const newService = req.body;
 
-      const result = await userCollection.insertOne(newService);
+      try {
 
-      res.send(result);
+        const result = await userCollection.insertOne(newService);
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to add service'
+        });
+      }
     });
-
-
-
 
     // ===================================================
     // ✅ UPDATE service
@@ -186,16 +236,24 @@ async function run() {
         }
       };
 
-      const result = await userCollection.updateOne(
-        filter,
-        updatedDoc
-      );
+      try {
 
-      res.send(result);
+        const result = await userCollection.updateOne(
+          filter,
+          updatedDoc
+        );
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to update service'
+        });
+      }
     });
-
-
-
 
     // ===================================================
     // ✅ DELETE service
@@ -208,13 +266,21 @@ async function run() {
         _id: new ObjectId(id)
       };
 
-      const result = await userCollection.deleteOne(query);
+      try {
 
-      res.send(result);
+        const result = await userCollection.deleteOne(query);
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to delete service'
+        });
+      }
     });
-
-
-
 
     // ===================================================
     // ✅ POST booking
@@ -239,39 +305,29 @@ async function run() {
       }
     });
 
-
-
-
     // ===================================================
     // ✅ GET all bookings
     // ===================================================
     app.get('/bookings', async (req, res) => {
 
-      const result = await bookingCollection.find().toArray();
+      try {
 
-      res.send(result);
+        const result = await bookingCollection.find().toArray();
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to fetch bookings'
+        });
+      }
     });
 
     // ===================================================
-// ✅ DELETE booking
-// ===================================================
-app.delete('/bookings/:id', async (req, res) => {
-
-  const id = req.params.id;
-
-  const query = {
-    _id: new ObjectId(id)
-  };
-
-  const result = await bookingCollection.deleteOne(query);
-
-  res.send(result);
-});
-
-
-
-    // ===================================================
-    // ✅ GET bookings by user email
+    // ✅ GET bookings by email
     // ===================================================
     app.get('/bookings/:email', async (req, res) => {
 
@@ -281,20 +337,95 @@ app.delete('/bookings/:id', async (req, res) => {
         userEmail: email
       };
 
-      const result = await bookingCollection.find(query).toArray();
+      try {
 
-      res.send(result);
+        const result = await bookingCollection.find(query).toArray();
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to fetch bookings'
+        });
+      }
     });
 
+    // ===================================================
+    // ✅ DELETE booking
+    // ===================================================
+    app.delete('/bookings/:id', async (req, res) => {
 
+      const id = req.params.id;
 
+      const query = {
+        _id: new ObjectId(id)
+      };
+
+      try {
+
+        const result = await bookingCollection.deleteOne(query);
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to cancel booking'
+        });
+      }
+    });
+
+    // ===================================================
+    // ✅ ADD Review To Service
+    // ===================================================
+    app.patch('/services/review/:id', async (req, res) => {
+
+      try {
+
+        const id = req.params.id;
+
+        const review = req.body;
+
+        const query = {
+          _id: new ObjectId(id)
+        };
+
+        const updateDoc = {
+
+          $push: {
+            reviews: review
+          }
+
+        };
+
+        const result = await userCollection.updateOne(
+          query,
+          updateDoc
+        );
+
+        res.send(result);
+
+      } catch (error) {
+
+        console.error(error);
+
+        res.status(500).send({
+          message: 'Failed to add review'
+        });
+      }
+    });
 
     // ===================================================
     // ✅ MongoDB Ping
     // ===================================================
     await client.db("admin").command({ ping: 1 });
 
-    console.log("✅ Connected to MongoDB");
+    console.log("✅ MongoDB Ping Success");
 
   }
 
@@ -305,7 +436,6 @@ app.delete('/bookings/:id', async (req, res) => {
 }
 
 run();
-
 
 // ===================================================
 // ✅ Start Server
