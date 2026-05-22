@@ -5,21 +5,15 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ===================================================
-// ✅ Middleware
-// ===================================================
+
 app.use(cors());
 app.use(express.json());
 
-// ===================================================
-// ✅ MongoDB URI
-// ===================================================
+
 const uri =
   "mongodb+srv://household:pNkXSw2GTIAiUZkj@cluster0.4h16s8h.mongodb.net/?appName=Cluster0";
 
-// ===================================================
-// ✅ Mongo Client
-// ===================================================
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -28,39 +22,29 @@ const client = new MongoClient(uri, {
   }
 });
 
-// ===================================================
-// ✅ Root Route
-// ===================================================
+
 app.get('/', (req, res) => {
-  res.send('Server is running 🚀');
+  res.send('Server is running ');
 });
 
-// ===================================================
-// ✅ Main Function
-// ===================================================
+
 async function run() {
 
   try {
 
-    // ===================================================
-    // ✅ Connect MongoDB
-    // ===================================================
+  
     await client.connect();
 
-    console.log("✅ Connected to MongoDB");
+    console.log(" Connected to MongoDB");
 
-    // ===================================================
-    // ✅ Database & Collections
-    // ===================================================
+
     const householdDB = client.db('household');
 
     const userCollection = householdDB.collection('services');
 
     const bookingCollection = householdDB.collection('bookings');
 
-    // ===================================================
-    // ✅ GET all services
-    // ===================================================
+ 
     app.get('/household', async (req, res) => {
 
       const min = parseInt(req.query.min) || 0;
@@ -90,9 +74,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ GET Top 6 Rated Services
-    // ===================================================
+
     app.get('/top-services', async (req, res) => {
 
       try {
@@ -131,9 +113,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ GET logged-in provider services
-    // ===================================================
+    
     app.get('/household/provider/:email', async (req, res) => {
 
       const email = req.params.email;
@@ -158,9 +138,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ GET single service by ID
-    // ===================================================
+    
     app.get('/household/:id', async (req, res) => {
 
       const id = req.params.id;
@@ -190,9 +168,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ POST new service
-    // ===================================================
+  
     app.post('/household', async (req, res) => {
 
       const newService = req.body;
@@ -213,9 +189,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ UPDATE service
-    // ===================================================
+    
     app.put('/household/:id', async (req, res) => {
 
       const id = req.params.id;
@@ -255,9 +229,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ DELETE service
-    // ===================================================
+    
     app.delete('/household/:id', async (req, res) => {
 
       const id = req.params.id;
@@ -282,9 +254,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ POST booking
-    // ===================================================
+   
     app.post('/bookings', async (req, res) => {
 
       const booking = req.body;
@@ -305,9 +275,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ GET all bookings
-    // ===================================================
+    
     app.get('/bookings', async (req, res) => {
 
       try {
@@ -326,9 +294,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ GET bookings by email
-    // ===================================================
+    
     app.get('/bookings/:email', async (req, res) => {
 
       const email = req.params.email;
@@ -353,9 +319,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ DELETE booking
-    // ===================================================
+    
     app.delete('/bookings/:id', async (req, res) => {
 
       const id = req.params.id;
@@ -380,9 +344,7 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ ADD Review To Service
-    // ===================================================
+    
     app.patch('/services/review/:id', async (req, res) => {
 
       try {
@@ -420,12 +382,10 @@ async function run() {
       }
     });
 
-    // ===================================================
-    // ✅ MongoDB Ping
-    // ===================================================
+    
     await client.db("admin").command({ ping: 1 });
 
-    console.log("✅ MongoDB Ping Success");
+    console.log(" MongoDB Ping Success");
 
   }
 
@@ -437,10 +397,8 @@ async function run() {
 
 run();
 
-// ===================================================
-// ✅ Start Server
-// ===================================================
+
 app.listen(port, () => {
 
-  console.log(`🚀 Server running on port ${port}`);
+  console.log(` Server running on port ${port}`);
 });
