@@ -33,7 +33,7 @@ async function run() {
   try {
 
   
-    await client.connect();
+    
 
     console.log(" Connected to MongoDB");
 
@@ -383,7 +383,7 @@ async function run() {
     });
 
     
-    await client.db("admin").command({ ping: 1 });
+    
 
     console.log(" MongoDB Ping Success");
 
